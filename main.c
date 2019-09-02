@@ -3,12 +3,12 @@
  */
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include <math.h>
-#include <time.h>
 
 int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0;
 float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
 float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
+int sgn(float); //no signum in math.h, writing own function.
 
 void FilterImu(float, float, float);    //Input is X, Y, Z in order.
 void I2CInit(void);
@@ -257,15 +257,23 @@ __interrupt void cpu_timer0_isr(void)
         GyrY = Filter[1];
         GyrZ = Filter[2];
 
-        if (GyrZ < -50000) GyrZ=0;  //Must be a measurement error. Ignore.
+        if (GyrZ < -5000) GyrZ=0;  //Must be a measurement error. Ignore.
 
-        if (fabs(GyrX) > 2.5) gyroAngleX = gyroAngleX + GyrX * 0.005; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
-        if (fabs(GyrY) > 2.5) gyroAngleY = gyroAngleY + GyrY * 0.005;
+        if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.006; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
+        if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.006;
 
-        if (fabs(GyrZ) > 2.5) yaw =  yaw + GyrZ * 0.005;                   //1.5°/s Deadzone
+        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.006;                   //1.5°/s Deadzone
         // Complementary filter - combine accelerometer and gyro angle values
-        if (fabs(GyrX) > 2.5) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5°/s Deadzone
-        if (fabs(GyrY) > 2.5) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5°/s Deadzone
+        if (fabs(GyrX) > 4) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5°/s Deadzone
+        if (fabs(GyrY) > 4) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5°/s Deadzone
+
+        //
+        // Limit angles to -+360°s
+        //
+
+        if (fabs(yaw) > 360.0) yaw = yaw - (360*sgn(yaw));
+        if (fabs(roll) > 360.0) roll = roll - (360*sgn(roll));
+        if (fabs(pitch) > 360.0) pitch = pitch - (360*sgn(pitch));
 
         GetImuTemps();
 
@@ -321,4 +329,17 @@ void FilterImu(float GyrX,float GyrY,float GyrZ)
     }
 
     Filter[2] = Filter[2]/5;    //Z axis
+}
+
+int sgn(float num)
+{
+    // x<0 => sgn(x)=-1
+    // x>0 => sgn(x)=+1
+    // x=0 => sgn(x)= 0
+
+    if (num < 0) return -1;
+    else if (num > 0) return 1;
+    else return 0;
+
+
 }
