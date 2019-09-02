@@ -5,12 +5,12 @@
 #include <math.h>
 #include <time.h>
 
-int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0;
+int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0;
 float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
-float MPUtemp;
+float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
 
-
+void FilterImu(float, float, float);    //Input is X, Y, Z in order.
 void I2CInit(void);
 void I2C_read_data(int);
 void GetImuTemps(void);
@@ -132,6 +132,13 @@ void I2CInit(void)
            MsgBuffer[i] = 0x0000;
        }
 
+   for (i = 0; i < 5; i++)  //Clear buffers for noise filter
+          {
+              XBuffer[i] = 0;
+              YBuffer[i] = 0;
+              ZBuffer[i] = 0;
+          }
+
    while(I2caRegs.I2CMDR.bit.STP == 1);
       // Check if bus busy
    while(I2caRegs.I2CSTR.bit.BB == 1);
@@ -245,13 +252,20 @@ __interrupt void cpu_timer0_isr(void)
         GyrY = (GyrY/65.5) - GtempY;
         GyrZ = (GyrZ/65.5) - GtempZ;
 
-        if (fabs(GyrX) > 2) gyroAngleX = gyroAngleX + GyrX * 0.007; // 2 deg/s * s = deg, time assumed 7ms based on interrupt
-        if (fabs(GyrY) > 2) gyroAngleY = gyroAngleY + GyrY * 0.007;
+        FilterImu(GyrX, GyrY, GyrZ);
+        GyrX = Filter[0];
+        GyrY = Filter[1];
+        GyrZ = Filter[2];
 
-        if (fabs(GyrZ) > 2) yaw =  yaw + GyrZ * 0.007;                   //1.5°/s Deadzone
+        if (GyrZ < -50000) GyrZ=0;  //Must be a measurement error. Ignore.
+
+        if (fabs(GyrX) > 2.5) gyroAngleX = gyroAngleX + GyrX * 0.005; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
+        if (fabs(GyrY) > 2.5) gyroAngleY = gyroAngleY + GyrY * 0.005;
+
+        if (fabs(GyrZ) > 2.5) yaw =  yaw + GyrZ * 0.005;                   //1.5°/s Deadzone
         // Complementary filter - combine accelerometer and gyro angle values
-        if (fabs(GyrX) > 2) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5°/s Deadzone
-        if (fabs(GyrY) > 2) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5°/s Deadzone
+        if (fabs(GyrX) > 2.5) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5°/s Deadzone
+        if (fabs(GyrY) > 2.5) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5°/s Deadzone
 
         GetImuTemps();
 
@@ -259,4 +273,52 @@ __interrupt void cpu_timer0_isr(void)
     }
 
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+}
+
+void FilterImu(float GyrX,float GyrY,float GyrZ)
+{
+    //
+    // Place values into the queue:
+    //
+
+    XBuffer[XPointer] = GyrX;
+    XPointer++;
+    YBuffer[YPointer] = GyrY;
+    YPointer++;
+    ZBuffer[ZPointer] = GyrZ;
+    ZPointer++;
+
+    //
+    // Loop pointer around to prevent overflow:
+    //
+
+    if (XPointer > 4) XPointer = 0;
+    if (YPointer > 4) YPointer = 0;
+    if (ZPointer > 4) ZPointer = 0;
+
+    //
+    // Apply mean filter
+    //
+    int i;
+
+    for(i=0 ; i<5 ; i++)
+    {
+        Filter[0] = Filter[0] + XBuffer[i];
+    }
+
+    Filter[0] = Filter[0]/5;    //X axis
+
+    for(i=0 ; i<5 ; i++)
+    {
+        Filter[1] = Filter[1] + YBuffer[i];
+    }
+
+    Filter[1] = Filter[1]/5;    //Y axis
+
+    for(i=0 ; i<5 ; i++)
+    {
+        Filter[2] = Filter[2] + ZBuffer[i];
+    }
+
+    Filter[2] = Filter[2]/5;    //Z axis
 }
