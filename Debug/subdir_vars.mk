@@ -23,6 +23,8 @@ C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Gp
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_I2C.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieCtrl.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieVect.c \
+C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Sci.c \
+C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Spi.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c \
 ../main.c 
 
@@ -35,6 +37,8 @@ C_DEPS += \
 ./DSP2833x_I2C.d \
 ./DSP2833x_PieCtrl.d \
 ./DSP2833x_PieVect.d \
+./DSP2833x_Sci.d \
+./DSP2833x_Spi.d \
 ./DSP2833x_SysCtrl.d \
 ./main.d 
 
@@ -49,6 +53,8 @@ OBJS += \
 ./DSP2833x_I2C.obj \
 ./DSP2833x_PieCtrl.obj \
 ./DSP2833x_PieVect.obj \
+./DSP2833x_Sci.obj \
+./DSP2833x_Spi.obj \
 ./DSP2833x_SysCtrl.obj \
 ./DSP2833x_usDelay.obj \
 ./main.obj 
@@ -69,6 +75,8 @@ OBJS__QUOTED += \
 "DSP2833x_I2C.obj" \
 "DSP2833x_PieCtrl.obj" \
 "DSP2833x_PieVect.obj" \
+"DSP2833x_Sci.obj" \
+"DSP2833x_Spi.obj" \
 "DSP2833x_SysCtrl.obj" \
 "DSP2833x_usDelay.obj" \
 "main.obj" 
@@ -82,6 +90,8 @@ C_DEPS__QUOTED += \
 "DSP2833x_I2C.d" \
 "DSP2833x_PieCtrl.d" \
 "DSP2833x_PieVect.d" \
+"DSP2833x_Sci.d" \
+"DSP2833x_Spi.d" \
 "DSP2833x_SysCtrl.d" \
 "main.d" 
 
@@ -104,7 +114,8 @@ C_SRCS__QUOTED += \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_I2C.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieCtrl.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieVect.c" \
-"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c" \
-"../main.c" 
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Sci.c" \
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Spi.c" \
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c" 
 
 
