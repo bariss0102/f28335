@@ -4,18 +4,25 @@
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include <math.h>
 
+#define PWM1_INT_ENABLE  1
+#define PWM1_TIMER_TBPRD   0xFFFF
+
 int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0;
 float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
 float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
 int sgn(float); //no signum in math.h, writing own function.
+unsigned int intflag=0;
 
 void FilterImu(float, float, float);    //Input is X, Y, Z in order.
 void I2CInit(void);
 void I2C_read_data(int);
 void GetImuTemps(void);
+void scia_fifo_init(void);
+void SciComm_init(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
+__interrupt void epwm_timer1_sci(void);
 
 
 int main(void)
@@ -38,6 +45,12 @@ int main(void)
         // Setup only the GP I/O only for I2C functionality
         //
         InitI2CGpio();
+
+        //
+        // Setup serial interface pins
+        //
+
+        InitSciaGpio();
 
         //
         // Step 3. Clear all interrupts and initialize PIE vector table
@@ -77,26 +90,48 @@ int main(void)
         EALLOW;         // This is needed to write to EALLOW protected registers
         PieVectTable.TINT0 = &cpu_timer0_isr;
         PieVectTable.XINT1 = &Xint_reset;
+        PieVectTable.EPWM1_INT = &epwm_timer1_sci;
+        SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;      // Stop all the TB clocks
         EDIS;    // This is needed to disable write to EALLOW protected registers
 
+        EPwm1Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Pass through
+        EPwm1Regs.TBCTL.bit.PHSEN = TB_ENABLE;
+        EPwm1Regs.TBPHS.half.TBPHS = 0;
+        EPwm1Regs.TBPRD = PWM1_TIMER_TBPRD;
+        EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP;    // Count up
+        EPwm1Regs.ETSEL.bit.INTSEL = ET_CTR_ZERO;     // Select INT on Zero event
+        EPwm1Regs.ETSEL.bit.INTEN = PWM1_INT_ENABLE;  // Enable INT
+        EPwm1Regs.ETPS.bit.INTPRD = ET_3RD;           // Generate INT on 1st event
+        EPwm1Regs.TBCTL.bit.CLKDIV = 0x7;             // Clock Divider
+        EPwm1Regs.TBCTL.bit.HSPCLKDIV = 0x4;           // High-Speed Clock Divider
+
+        EALLOW;
+        SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1;       // Start timers
+        EDIS;
         //
         // Step 4. Initialize all the Device Peripherals:
         //
 
         ConfigCpuTimer(&CpuTimer0, 150, 7000);
         CpuTimer0Regs.TCR.all = 0x4000;
+        ConfigCpuTimer(&CpuTimer2, 150, 10000);
+        CpuTimer2Regs.TCR.all = 0x4000;
 
         //
         // Step 5. User specific code
         //
 
+        scia_fifo_init();      // Initialize the SCI FIFO
+        SciComm_init();
         I2CInit();
 
         // Enable interrupts after start
 
         IER |= M_INT1;
+        IER |= M_INT3; //For pwm
         PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
         PieCtrlRegs.PIEIER1.bit.INTx4 = 1;
+        PieCtrlRegs.PIEIER3.bit.INTx1 = PWM1_INT_ENABLE;
         EINT;           // Enable Global interrupt INTM
         ERTM;           // Enable Global realtime interrupt DBGM
 
@@ -108,6 +143,17 @@ int main(void)
 
         }
 
+}
+
+void scia_fifo_init(void)
+{
+    //
+    // scia_fifo_init - Initialize the SCI FIFO
+    //
+
+    SciaRegs.SCIFFTX.all=0xE040;
+    SciaRegs.SCIFFRX.all=0x204f;
+    SciaRegs.SCIFFCT.all=0x0;
 }
 
 void I2CInit(void)
@@ -393,4 +439,33 @@ int sgn(float num)
 
 }
 
+void SciComm_init(void)
+{
+    // 1 stop bit,  No loopback, No parity,8 char bits,
+    // async mode, idle-line protocol
+    //
+    SciaRegs.SCICCR.all = 0x0007;
 
+    //
+    // enable TX, RX, internal SCICLK,
+    // Disable RX ERR, SLEEP, TXWAKE
+    //
+    SciaRegs.SCICTL1.all = 0x0003;
+    SciaRegs.SCICTL2.all = 0x0003;
+    SciaRegs.SCICTL2.bit.TXINTENA = 0;
+    SciaRegs.SCICTL2.bit.RXBKINTENA = 0;
+
+    SciaRegs.SCIHBAUD    =0x0001;  // 9600 baud @LSPCLK = 37.5MHz.
+    SciaRegs.SCILBAUD    =0x00E7;
+    SciaRegs.SCICTL1.all =0x0023;  // Relinquish SCI from Reset
+
+}
+
+__interrupt void epwm_timer1_sci(void)
+{
+
+    intflag++;
+    EPwm1Regs.ETCLR.bit.INT = 1;
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
+
+}
