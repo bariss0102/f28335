@@ -15,6 +15,7 @@ void I2CInit(void);
 void I2C_read_data(int);
 void GetImuTemps(void);
 __interrupt void cpu_timer0_isr(void);
+__interrupt void Xint_reset(void);
 
 
 int main(void)
@@ -75,6 +76,7 @@ int main(void)
 
         EALLOW;         // This is needed to write to EALLOW protected registers
         PieVectTable.TINT0 = &cpu_timer0_isr;
+        PieVectTable.XINT1 = &Xint_reset;
         EDIS;    // This is needed to disable write to EALLOW protected registers
 
         //
@@ -94,6 +96,7 @@ int main(void)
 
         IER |= M_INT1;
         PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
+        PieCtrlRegs.PIEIER1.bit.INTx4 = 1;
         EINT;           // Enable Global interrupt INTM
         ERTM;           // Enable Global realtime interrupt DBGM
 
@@ -331,6 +334,52 @@ void FilterImu(float GyrX,float GyrY,float GyrZ)
     Filter[2] = Filter[2]/5;    //Z axis
 }
 
+__interrupt void Xint_reset(void)
+{
+    //
+    // Do NOT reset during motion. Calibration will be messed up.
+    //
+
+    int i;
+
+    // Recalibrate to 0.
+    GtempX = GtempX + Filter[0];
+    GtempY = GtempY + Filter[1];
+    GtempZ = GtempZ + Filter[2];
+
+    //Reset filter results
+    for (i=0 ; i<3 ; i++)
+    {
+        Filter[i] = 0;
+    }
+
+    //Reset noise filter buffers:
+    for (i=0 ; i<5 ; i++)
+    {
+        XBuffer[i] = 0;
+        YBuffer[i] = 0;
+        ZBuffer[i] = 0;
+    }
+
+    //Reset FIFO Pointers.
+    XPointer = 0;
+    YPointer = 0;
+    ZPointer = 0;
+
+    //Reset Mpu Variables
+    MpuReadCount=0;
+    yaw=0;
+    pitch=0;
+    roll=0;
+    Angle_X=0;
+    Angle_Y=0;
+    gyroAngleX=0;
+    gyroAngleY=0;
+
+    //Acknowledge interrupt
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+}
+
 int sgn(float num)
 {
     // x<0 => sgn(x)=-1
@@ -343,3 +392,5 @@ int sgn(float num)
 
 
 }
+
+

@@ -130,7 +130,7 @@ SECTIONS
    #endif
 #endif    
    
-   .text            : > RAML1,     PAGE = 0
+   .text            :>> RAML1|RAML2,     PAGE = 0
    .cinit           : > RAML0,     PAGE = 0
    .pinit           : > RAML0,     PAGE = 0
    .switch          : > RAML0,     PAGE = 0
