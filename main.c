@@ -3,6 +3,8 @@
  */
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define PWM1_INT_ENABLE  1
 #define PWM1_TIMER_TBPRD   0xFFFF
@@ -20,6 +22,8 @@ void I2C_read_data(int);
 void GetImuTemps(void);
 void scia_fifo_init(void);
 void SciComm_init(void);
+void scia_msg(char *);
+void scia_xmit(int a);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
 __interrupt void epwm_timer1_sci(void);
@@ -463,9 +467,43 @@ void SciComm_init(void)
 
 __interrupt void epwm_timer1_sci(void)
 {
+    //
+    // Send measured data to computer using sci.
+    //
 
-    intflag++;
+    int buf;
+    char buffer[20];
+    buf = (int)yaw;
+    scia_xmit(buf);
+    buf = (int)roll;
+    scia_xmit(buf);
+    buf = (int)pitch;
+    scia_xmit(buf);
+
+
+
+    //Acknowledge:
     EPwm1Regs.ETCLR.bit.INT = 1;
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
 
+}
+
+void scia_xmit(int a)
+{
+    while (SciaRegs.SCIFFTX.bit.TXFFST != 0) ;
+    SciaRegs.SCITXBUF=a;
+}
+
+//
+// scia_msg -
+//
+void scia_msg(char * msg)
+{
+    int i;
+    i = 0;
+    while(msg[i] != '\0')
+    {
+        scia_xmit(msg[i]);
+        i++;
+    }
 }
