@@ -22,8 +22,7 @@ void I2C_read_data(int);
 void GetImuTemps(void);
 void scia_fifo_init(void);
 void SciComm_init(void);
-void scia_msg(char *);
-void scia_xmit(int a);
+void scia_xmit(void *a);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
 __interrupt void epwm_timer1_sci(void);
@@ -459,8 +458,8 @@ void SciComm_init(void)
     SciaRegs.SCICTL2.bit.TXINTENA = 0;
     SciaRegs.SCICTL2.bit.RXBKINTENA = 0;
 
-    SciaRegs.SCIHBAUD    =0x0001;  // 9600 baud @LSPCLK = 37.5MHz.
-    SciaRegs.SCILBAUD    =0x00E7;
+    SciaRegs.SCIHBAUD    =0x0000;  // 19200 baud @LSPCLK = 37.5MHz.
+    SciaRegs.SCILBAUD    =0x00F3;
     SciaRegs.SCICTL1.all =0x0023;  // Relinquish SCI from Reset
 
 }
@@ -471,14 +470,26 @@ __interrupt void epwm_timer1_sci(void)
     // Send measured data to computer using sci.
     //
 
-    int buf;
-    char buffer[20];
+    void *p;
+
+    /*int buf;
     buf = (int)yaw;
     scia_xmit(buf);
     buf = (int)roll;
     scia_xmit(buf);
     buf = (int)pitch;
-    scia_xmit(buf);
+    scia_xmit(buf);*/ //Depracated
+
+
+    p = &pitch;
+    scia_xmit((char*)p);
+    scia_xmit((char*)p +1);
+    p = &yaw;
+    scia_xmit((char*)p);
+    scia_xmit((char*)p +1);
+    p = &roll;
+    scia_xmit((char*)p);
+    scia_xmit((char*)p +1);
 
 
 
@@ -488,22 +499,15 @@ __interrupt void epwm_timer1_sci(void)
 
 }
 
-void scia_xmit(int a)
+void scia_xmit(void * a)    //Input is 16 bits
 {
+    int *pnt = a;
+    int dat = *pnt;
+    char bufL, bufH;
+    bufL = dat & 0x00FF;
+    bufH = (dat & 0xFF00)/256; //Compiler didn't like >>>8 :/
     while (SciaRegs.SCIFFTX.bit.TXFFST != 0) ;
-    SciaRegs.SCITXBUF=a;
-}
-
-//
-// scia_msg -
-//
-void scia_msg(char * msg)
-{
-    int i;
-    i = 0;
-    while(msg[i] != '\0')
-    {
-        scia_xmit(msg[i]);
-        i++;
-    }
+    SciaRegs.SCITXBUF= bufL;
+    while (SciaRegs.SCIFFTX.bit.TXFFST != 0) ;
+    SciaRegs.SCITXBUF= bufH;
 }

@@ -35,6 +35,10 @@ main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/_
 main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/cdefs.h
 main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_types.h
 main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_limits.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdio.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdarg.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlib.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlibf.h
 
 ../main.c: 
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP28x_Project.h: 
@@ -71,3 +75,7 @@ C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/_types.h:
 C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/cdefs.h: 
 C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_types.h: 
 C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_limits.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdio.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdarg.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlib.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlibf.h: 
