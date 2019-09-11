@@ -45,9 +45,18 @@ int main(void)
         // InitGpio();
 
         //
-        // Setup only the GP I/O only for I2C functionality
+        // Setup only the GP I/O for I2C functionality and external interrupts
         //
+
         InitI2CGpio();
+        EALLOW;
+        GpioIntRegs.GPIOXINT1SEL.bit.GPIOSEL = 30;
+        GpioCtrlRegs.GPAMUX2.bit.GPIO30 = 0;    //GPIO
+        GpioCtrlRegs.GPADIR.bit.GPIO30 = 0;     //Input
+        GpioCtrlRegs.GPAQSEL2.bit.GPIO30 = 0;   //Sync setup
+        XIntruptRegs.XINT1CR.bit.POLARITY = 3;  //Trigger on change
+        XIntruptRegs.XINT1CR.bit.ENABLE = 1;    //Enable XINT1
+        EDIS;
 
         //
         // Setup serial interface pins
@@ -173,6 +182,7 @@ void I2CInit(void)
    // Stop I2C when suspended
    //
    I2caRegs.I2CMDR.all = 0x0020;
+   I2caRegs.I2CMDR.bit.IRS = 1;
 
    I2caRegs.I2CFFTX.all = 0x6000;  // Enable FIFO mode and TXFIFO
    I2caRegs.I2CFFRX.all = 0x2040;  // Enable RXFIFO, clear RXFFINT,
@@ -314,13 +324,13 @@ __interrupt void cpu_timer0_isr(void)
         if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.006; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
         if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.006;
 
-        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.006;                   //1.5°/s Deadzone
+        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.006;                   //1.5ï¿½/s Deadzone
         // Complementary filter - combine accelerometer and gyro angle values
-        if (fabs(GyrX) > 4) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5°/s Deadzone
-        if (fabs(GyrY) > 4) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5°/s Deadzone
+        if (fabs(GyrX) > 4) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5ï¿½/s Deadzone
+        if (fabs(GyrY) > 4) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5ï¿½/s Deadzone
 
         //
-        // Limit angles to -+360°s
+        // Limit angles to -+360ï¿½s
         //
 
         if (fabs(yaw) > 360.0) yaw = yaw - (360*sgn(yaw));
