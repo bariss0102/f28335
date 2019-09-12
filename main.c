@@ -1,6 +1,7 @@
 /**
  * main.c
  */
+
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include <math.h>
 #include <stdio.h>
@@ -9,8 +10,8 @@
 #define PWM1_INT_ENABLE  1
 #define PWM1_TIMER_TBPRD   0xFFFF
 
-int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0;
-float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
+int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0, tmpH, tmpL, BBCount=0;
+float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y, Cels, Fahr;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
 float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
 int sgn(float); //no signum in math.h, writing own function.
@@ -23,9 +24,11 @@ void GetImuTemps(void);
 void scia_fifo_init(void);
 void SciComm_init(void);
 void scia_xmit(void *a);
+void getTemps(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
 __interrupt void epwm_timer1_sci(void);
+__interrupt void cpu_timer2_isr(void);
 
 
 int main(void)
@@ -101,6 +104,7 @@ int main(void)
 
         EALLOW;         // This is needed to write to EALLOW protected registers
         PieVectTable.TINT0 = &cpu_timer0_isr;
+        PieVectTable.TINT2 = &cpu_timer2_isr;
         PieVectTable.XINT1 = &Xint_reset;
         PieVectTable.EPWM1_INT = &epwm_timer1_sci;
         SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;      // Stop all the TB clocks
@@ -124,10 +128,12 @@ int main(void)
         // Step 4. Initialize all the Device Peripherals:
         //
 
-        ConfigCpuTimer(&CpuTimer0, 150, 7000);
+        InitCpuTimers();
+
+        ConfigCpuTimer(&CpuTimer0, 150, 1000); //1ms
         CpuTimer0Regs.TCR.all = 0x4000;
-        ConfigCpuTimer(&CpuTimer2, 150, 10000);
-        CpuTimer2Regs.TCR.all = 0x4000;
+        ConfigCpuTimer(&CpuTimer2, 150, 300000);    //300ms
+        //CpuTimer2Regs.TCR.all = 0x4000;
 
         //
         // Step 5. User specific code
@@ -140,6 +146,7 @@ int main(void)
         // Enable interrupts after start
 
         IER |= M_INT1;
+        IER |= M_INT14;
         IER |= M_INT3; //For pwm
         PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
         PieCtrlRegs.PIEIER1.bit.INTx4 = 1;
@@ -147,12 +154,49 @@ int main(void)
         EINT;           // Enable Global interrupt INTM
         ERTM;           // Enable Global realtime interrupt DBGM
 
-
-
-
         while (1)
         {
+            if(BBCount > 10)
+            {
+                int i;
 
+                // Recalibrate to 0.
+                GtempX = GtempX + Filter[0];
+                GtempY = GtempY + Filter[1];
+                GtempZ = GtempZ + Filter[2];
+
+                //Reset filter results
+                for (i=0 ; i<3 ; i++)
+                {
+                    Filter[i] = 0;
+                }
+
+                //Reset noise filter buffers:
+                for (i=0 ; i<5 ; i++)
+                {
+                    XBuffer[i] = 0;
+                    YBuffer[i] = 0;
+                    ZBuffer[i] = 0;
+                }
+
+                //Reset FIFO Pointers.
+                XPointer = 0;
+                YPointer = 0;
+                ZPointer = 0;
+
+                //Reset Mpu Variables
+                MpuReadCount=0;
+                yaw=0;
+                pitch=0;
+                roll=0;
+                Angle_X=0;
+                Angle_Y=0;
+                gyroAngleX=0;
+                gyroAngleY=0;
+
+                I2CInit();
+                BBCount=0;
+            }
         }
 
 }
@@ -203,9 +247,15 @@ void I2CInit(void)
 
    while(I2caRegs.I2CMDR.bit.STP == 1);
       // Check if bus busy
-   while(I2caRegs.I2CSTR.bit.BB == 1);
+   if(BBCount < 5) while(I2caRegs.I2CSTR.bit.BB == 1);
 
-    // Setup slave address
+   I2caRegs.I2CSAR = 0x4F;
+   I2caRegs.I2CCNT = 2;
+   I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
+   I2caRegs.I2CDXR = 0x01;  //Config Regs
+   I2caRegs.I2CDXR = 0x61;  //Continuous Transfer
+   for(i=0 ; i<700; i++);    //Wait
+
    I2caRegs.I2CSAR = 0x68;
     // Setup number of bytes to send
     // Msg + Address
@@ -215,21 +265,20 @@ void I2CInit(void)
    I2caRegs.I2CDXR = 0x00;
    for(i=0 ; i<700; i++);    //Wait
 
-
-   I2caRegs.I2CSAR = 0x68;
    I2caRegs.I2CCNT = 2;
    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
    I2caRegs.I2CDXR = 0x1B;          //Gyro_Config, start at 500deg/s
    I2caRegs.I2CDXR = 0x08;
    for(i=0 ; i<700; i++);    //Wait
 
-
-   I2caRegs.I2CSAR = 0x68;
    I2caRegs.I2CCNT = 2;
    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
    I2caRegs.I2CDXR = 0x1C;          //Acelerometer Start at +-2g
    I2caRegs.I2CDXR = 0x00;
    for(i=0 ; i<700; i++);         //Wait
+
+   CpuTimer2Regs.TCR.all = 0x4000;
+
 
    return;
 
@@ -244,7 +293,12 @@ void I2C_read_data(int ReadOffset)
     // I2C could get confused.
     while(I2caRegs.I2CMDR.bit.STP == 1);
     // Check if bus busy
-    while(I2caRegs.I2CSTR.bit.BB == 1);
+    while(I2caRegs.I2CSTR.bit.BB == 1)
+        {
+            BBCount++;
+            PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+            return;
+        }
     I2caRegs.I2CSAR = 0x68;
     I2caRegs.I2CCNT = 1;
     I2caRegs.I2CMDR.all = 0x2620;    // Send message, no stop
@@ -302,7 +356,7 @@ __interrupt void cpu_timer0_isr(void)
             GtempY = GyrX/65.5;
             GtempZ = GyrX/65.5;
         }
-        else if (MpuAvgCounter < 100)
+        else if (MpuAvgCounter < 25)
         {
             GtempX = (GtempX + GyrX/65.5)/2; //Mean Filter
             GtempY = (GtempY + GyrY/65.5)/2;
@@ -319,12 +373,14 @@ __interrupt void cpu_timer0_isr(void)
         GyrY = Filter[1];
         GyrZ = Filter[2];
 
-        if (GyrZ < -5000) GyrZ=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrX) > 5000) GyrX=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrY) > 5000) GyrY=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrZ) > 5000) GyrZ=0;  //Must be a measurement error. Ignore.
 
-        if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.006; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
-        if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.006;
+        if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.015; // 2 deg/s * s = deg, time assumed 7ms based on interrupt
+        if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.015;
 
-        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.006;                   //1.5�/s Deadzone
+        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.015;                   //1.5�/s Deadzone
         // Complementary filter - combine accelerometer and gyro angle values
         if (fabs(GyrX) > 4) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5�/s Deadzone
         if (fabs(GyrY) > 4) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5�/s Deadzone
@@ -520,4 +576,48 @@ void scia_xmit(void * a)    //Input is 16 bits
     SciaRegs.SCITXBUF= bufL;
     while (SciaRegs.SCIFFTX.bit.TXFFST != 0) ;
     SciaRegs.SCITXBUF= bufH;
+}
+
+__interrupt void cpu_timer2_isr(void)
+{
+    int i;
+    //Read from sensor here:
+    while(I2caRegs.I2CMDR.bit.STP == 1);
+    // Check if bus busy
+    while(I2caRegs.I2CSTR.bit.BB == 1)
+    {
+        BBCount++;
+        PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+        return;
+    }
+
+    I2caRegs.I2CSAR = 0x4F;
+    I2caRegs.I2CCNT = 1;
+    I2caRegs.I2CMDR.all = 0x2620;    // Send message, no stop
+    I2caRegs.I2CDXR = 0x00;
+    for(i=0 ; i<700; i++);         //Wait
+    I2caRegs.I2CCNT = 2;
+    I2caRegs.I2CMDR.all = 0x2C20;    // recieve messages
+    tmpH =I2caRegs.I2CDRR;
+    for(i=0 ; i<700; i++);         //Wait
+    tmpL =I2caRegs.I2CDRR;
+
+    I2caRegs.I2CSAR = 0x4F;
+    I2caRegs.I2CCNT = 2;
+    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
+    I2caRegs.I2CDXR = 0x01;  //Config Regs
+    I2caRegs.I2CDXR = 0xE1;  //Continuous Transfer
+    for(i=0 ; i<700; i++);    //Wait
+
+    getTemps();
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+
+}
+
+void getTemps(void)
+{
+
+    Cels = (((tmpL * 256) + (tmpH & 0xF0)) / 16) * 0.0625;
+    Fahr = Cels * 1.8 + 32;
+
 }

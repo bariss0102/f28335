@@ -27,18 +27,18 @@ main.obj: C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/
 main.obj: C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_Dma_defines.h
 main.obj: C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_I2c_defines.h
 main.obj: C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_DefaultIsr.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/math.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/_ti_config.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/linkage.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/_defs.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/_types.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/cdefs.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_types.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_limits.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdio.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdarg.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlib.h
-main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlibf.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/math.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/_ti_config.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/linkage.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/_defs.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/sys/_types.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/sys/cdefs.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/machine/_types.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/machine/_limits.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdio.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdarg.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdlib.h
+main.obj: C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdlibf.h
 
 ../main.c: 
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP28x_Project.h: 
@@ -67,15 +67,15 @@ C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_E
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_Dma_defines.h: 
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_I2c_defines.h: 
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/include/DSP2833x_DefaultIsr.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/math.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/_ti_config.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/linkage.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/_defs.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/_types.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/sys/cdefs.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_types.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/machine/_limits.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdio.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdarg.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlib.h: 
-C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.2.LTS/include/stdlibf.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/math.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/_ti_config.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/linkage.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/_defs.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/sys/_types.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/sys/cdefs.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/machine/_types.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/machine/_limits.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdio.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdarg.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdlib.h: 
+C:/ti/ccs910/ccs/tools/compiler/ti-cgt-c2000_18.12.3.LTS/include/stdlibf.h: 

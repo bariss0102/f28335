@@ -18,28 +18,30 @@ C_SRCS += \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Adc.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_CpuTimers.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_DefaultIsr.c \
+C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_EPwm.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/headers/source/DSP2833x_GlobalVariableDefs.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Gpio.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_I2C.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieCtrl.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieVect.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Sci.c \
-C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Spi.c \
 C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c \
+C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Xintf.c \
 ../main.c 
 
 C_DEPS += \
 ./DSP2833x_Adc.d \
 ./DSP2833x_CpuTimers.d \
 ./DSP2833x_DefaultIsr.d \
+./DSP2833x_EPwm.d \
 ./DSP2833x_GlobalVariableDefs.d \
 ./DSP2833x_Gpio.d \
 ./DSP2833x_I2C.d \
 ./DSP2833x_PieCtrl.d \
 ./DSP2833x_PieVect.d \
 ./DSP2833x_Sci.d \
-./DSP2833x_Spi.d \
 ./DSP2833x_SysCtrl.d \
+./DSP2833x_Xintf.d \
 ./main.d 
 
 OBJS += \
@@ -48,14 +50,15 @@ OBJS += \
 ./DSP2833x_CodeStartBranch.obj \
 ./DSP2833x_CpuTimers.obj \
 ./DSP2833x_DefaultIsr.obj \
+./DSP2833x_EPwm.obj \
 ./DSP2833x_GlobalVariableDefs.obj \
 ./DSP2833x_Gpio.obj \
 ./DSP2833x_I2C.obj \
 ./DSP2833x_PieCtrl.obj \
 ./DSP2833x_PieVect.obj \
 ./DSP2833x_Sci.obj \
-./DSP2833x_Spi.obj \
 ./DSP2833x_SysCtrl.obj \
+./DSP2833x_Xintf.obj \
 ./DSP2833x_usDelay.obj \
 ./main.obj 
 
@@ -70,14 +73,15 @@ OBJS__QUOTED += \
 "DSP2833x_CodeStartBranch.obj" \
 "DSP2833x_CpuTimers.obj" \
 "DSP2833x_DefaultIsr.obj" \
+"DSP2833x_EPwm.obj" \
 "DSP2833x_GlobalVariableDefs.obj" \
 "DSP2833x_Gpio.obj" \
 "DSP2833x_I2C.obj" \
 "DSP2833x_PieCtrl.obj" \
 "DSP2833x_PieVect.obj" \
 "DSP2833x_Sci.obj" \
-"DSP2833x_Spi.obj" \
 "DSP2833x_SysCtrl.obj" \
+"DSP2833x_Xintf.obj" \
 "DSP2833x_usDelay.obj" \
 "main.obj" 
 
@@ -85,14 +89,15 @@ C_DEPS__QUOTED += \
 "DSP2833x_Adc.d" \
 "DSP2833x_CpuTimers.d" \
 "DSP2833x_DefaultIsr.d" \
+"DSP2833x_EPwm.d" \
 "DSP2833x_GlobalVariableDefs.d" \
 "DSP2833x_Gpio.d" \
 "DSP2833x_I2C.d" \
 "DSP2833x_PieCtrl.d" \
 "DSP2833x_PieVect.d" \
 "DSP2833x_Sci.d" \
-"DSP2833x_Spi.d" \
 "DSP2833x_SysCtrl.d" \
+"DSP2833x_Xintf.d" \
 "main.d" 
 
 ASM_DEPS__QUOTED += \
@@ -109,13 +114,15 @@ C_SRCS__QUOTED += \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Adc.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_CpuTimers.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_DefaultIsr.c" \
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_EPwm.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/headers/source/DSP2833x_GlobalVariableDefs.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Gpio.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_I2C.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieCtrl.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_PieVect.c" \
 "C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Sci.c" \
-"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Spi.c" \
-"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c" 
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_SysCtrl.c" \
+"C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2833x/common/source/DSP2833x_Xintf.c" \
+"../main.c" 
 
 
