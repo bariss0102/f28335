@@ -9,7 +9,7 @@
 #define PWM1_INT_ENABLE  1
 #define PWM1_TIMER_TBPRD   0xFFFF
 
-int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0;
+int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0, tmpH, tmpL;
 float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
 float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
@@ -26,6 +26,7 @@ void scia_xmit(void *a);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
 __interrupt void epwm_timer1_sci(void);
+__interrupt void cpu_timer2_isr(void);
 
 
 int main(void)
@@ -101,6 +102,7 @@ int main(void)
 
         EALLOW;         // This is needed to write to EALLOW protected registers
         PieVectTable.TINT0 = &cpu_timer0_isr;
+        PieVectTable.TINT2 = &cpu_timer2_isr;
         PieVectTable.XINT1 = &Xint_reset;
         PieVectTable.EPWM1_INT = &epwm_timer1_sci;
         SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;      // Stop all the TB clocks
@@ -128,8 +130,8 @@ int main(void)
 
         ConfigCpuTimer(&CpuTimer0, 150, 7000);
         CpuTimer0Regs.TCR.all = 0x4000;
-        ConfigCpuTimer(&CpuTimer2, 150, 10000);
-        CpuTimer2Regs.TCR.all = 0x4000;
+        ConfigCpuTimer(&CpuTimer2, 150, 105000);
+        //CpuTimer2Regs.TCR.all = 0x4000;
 
         //
         // Step 5. User specific code
@@ -142,6 +144,7 @@ int main(void)
         // Enable interrupts after start
 
         IER |= M_INT1;
+        IER |= M_INT14;
         IER |= M_INT3; //For pwm
         PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
         PieCtrlRegs.PIEIER1.bit.INTx4 = 1;
@@ -234,6 +237,8 @@ void I2CInit(void)
    I2caRegs.I2CDXR = 0x1C;          //Acelerometer Start at +-2g
    I2caRegs.I2CDXR = 0x00;
    for(i=0 ; i<700; i++);         //Wait
+
+   CpuTimer2Regs.TCR.all = 0x4000;
 
 
    return;
