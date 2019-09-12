@@ -124,6 +124,8 @@ int main(void)
         // Step 4. Initialize all the Device Peripherals:
         //
 
+        InitCpuTimers();
+
         ConfigCpuTimer(&CpuTimer0, 150, 7000);
         CpuTimer0Regs.TCR.all = 0x4000;
         ConfigCpuTimer(&CpuTimer2, 150, 10000);
@@ -205,7 +207,13 @@ void I2CInit(void)
       // Check if bus busy
    while(I2caRegs.I2CSTR.bit.BB == 1);
 
-    // Setup slave address
+   I2caRegs.I2CSAR = 0x4F;
+   I2caRegs.I2CCNT = 2;
+   I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
+   I2caRegs.I2CDXR = 0x01;  //Config Regs
+   I2caRegs.I2CDXR = 0x61;  //Continuous Transfer
+   for(i=0 ; i<700; i++);    //Wait
+
    I2caRegs.I2CSAR = 0x68;
     // Setup number of bytes to send
     // Msg + Address
@@ -215,21 +223,18 @@ void I2CInit(void)
    I2caRegs.I2CDXR = 0x00;
    for(i=0 ; i<700; i++);    //Wait
 
-
-   I2caRegs.I2CSAR = 0x68;
    I2caRegs.I2CCNT = 2;
    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
    I2caRegs.I2CDXR = 0x1B;          //Gyro_Config, start at 500deg/s
    I2caRegs.I2CDXR = 0x08;
    for(i=0 ; i<700; i++);    //Wait
 
-
-   I2caRegs.I2CSAR = 0x68;
    I2caRegs.I2CCNT = 2;
    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
    I2caRegs.I2CDXR = 0x1C;          //Acelerometer Start at +-2g
    I2caRegs.I2CDXR = 0x00;
    for(i=0 ; i<700; i++);         //Wait
+
 
    return;
 
@@ -520,4 +525,34 @@ void scia_xmit(void * a)    //Input is 16 bits
     SciaRegs.SCITXBUF= bufL;
     while (SciaRegs.SCIFFTX.bit.TXFFST != 0) ;
     SciaRegs.SCITXBUF= bufH;
+}
+
+__interrupt void cpu_timer2_isr(void)
+{
+    int i;
+    //Read from sensor here:
+    while(I2caRegs.I2CMDR.bit.STP == 1);
+    // Check if bus busy
+    while(I2caRegs.I2CSTR.bit.BB == 1);
+
+    I2caRegs.I2CSAR = 0x4F;
+    I2caRegs.I2CCNT = 1;
+    I2caRegs.I2CMDR.all = 0x2620;    // Send message, no stop
+    I2caRegs.I2CDXR = 0x00;
+    for(i=0 ; i<700; i++);         //Wait
+    I2caRegs.I2CCNT = 2;
+    I2caRegs.I2CMDR.all = 0x2C20;    // recieve messages
+    tmpH =I2caRegs.I2CDRR;
+    for(i=0 ; i<700; i++);         //Wait
+    tmpL =I2caRegs.I2CDRR;
+
+    I2caRegs.I2CSAR = 0x4F;
+    I2caRegs.I2CCNT = 2;
+    I2caRegs.I2CMDR.all = 0x2E20;    // Send start as master transmitter
+    I2caRegs.I2CDXR = 0x01;  //Config Regs
+    I2caRegs.I2CDXR = 0xE1;  //Continuous Transfer
+    for(i=0 ; i<700; i++);    //Wait
+
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+
 }
