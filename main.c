@@ -1,6 +1,7 @@
 /**
  * main.c
  */
+
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include <math.h>
 #include <stdio.h>
@@ -128,9 +129,9 @@ int main(void)
 
         InitCpuTimers();
 
-        ConfigCpuTimer(&CpuTimer0, 150, 7000);
+        ConfigCpuTimer(&CpuTimer0, 150, 1000); //1ms
         CpuTimer0Regs.TCR.all = 0x4000;
-        ConfigCpuTimer(&CpuTimer2, 150, 105000);
+        ConfigCpuTimer(&CpuTimer2, 150, 300000);    //300ms
         //CpuTimer2Regs.TCR.all = 0x4000;
 
         //
@@ -151,9 +152,6 @@ int main(void)
         PieCtrlRegs.PIEIER3.bit.INTx1 = PWM1_INT_ENABLE;
         EINT;           // Enable Global interrupt INTM
         ERTM;           // Enable Global realtime interrupt DBGM
-
-
-
 
         while (1)
         {
@@ -312,7 +310,7 @@ __interrupt void cpu_timer0_isr(void)
             GtempY = GyrX/65.5;
             GtempZ = GyrX/65.5;
         }
-        else if (MpuAvgCounter < 100)
+        else if (MpuAvgCounter < 25)
         {
             GtempX = (GtempX + GyrX/65.5)/2; //Mean Filter
             GtempY = (GtempY + GyrY/65.5)/2;
@@ -329,12 +327,14 @@ __interrupt void cpu_timer0_isr(void)
         GyrY = Filter[1];
         GyrZ = Filter[2];
 
-        if (GyrZ < -5000) GyrZ=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrX) > 5000) GyrX=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrY) > 5000) GyrY=0;  //Must be a measurement error. Ignore.
+        if (fabs(GyrZ) > 5000) GyrZ=0;  //Must be a measurement error. Ignore.
 
-        if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.006; // 2 deg/s * s = deg, time assumed 6ms based on interrupt
-        if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.006;
+        if (fabs(GyrX) > 4) gyroAngleX = gyroAngleX + GyrX * 0.015; // 2 deg/s * s = deg, time assumed 7ms based on interrupt
+        if (fabs(GyrY) > 4) gyroAngleY = gyroAngleY + GyrY * 0.015;
 
-        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.006;                   //1.5�/s Deadzone
+        if (fabs(GyrZ) > 4) yaw =  yaw + GyrZ * 0.015;                   //1.5�/s Deadzone
         // Complementary filter - combine accelerometer and gyro angle values
         if (fabs(GyrX) > 4) roll = 0.9 * gyroAngleX + 0.1 * Angle_X;    //1.5�/s Deadzone
         if (fabs(GyrY) > 4) pitch = 0.9 * gyroAngleY + 0.1 * Angle_Y;   //1.5�/s Deadzone
