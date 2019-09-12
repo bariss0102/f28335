@@ -10,8 +10,8 @@
 #define PWM1_INT_ENABLE  1
 #define PWM1_TIMER_TBPRD   0xFFFF
 
-int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0, tmpH, tmpL;
-float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y;
+int MsgBuffer[14], MpuReadCount=0, MpuAvgCounter=0, XPointer=0, YPointer=0, ZPointer=0, tmpH, tmpL, BBCount=0;
+float yaw=0, pitch=0, roll=0, Angle_X, Angle_Y, Cels, Fahr;
 float gyroAngleX = 0, gyroAngleY = 0, GtempX=0, GtempY=0, GtempZ=0;
 float MPUtemp, XBuffer[5], YBuffer[5], ZBuffer[5], Filter[3];
 int sgn(float); //no signum in math.h, writing own function.
@@ -24,6 +24,7 @@ void GetImuTemps(void);
 void scia_fifo_init(void);
 void SciComm_init(void);
 void scia_xmit(void *a);
+void getTemps(void);
 __interrupt void cpu_timer0_isr(void);
 __interrupt void Xint_reset(void);
 __interrupt void epwm_timer1_sci(void);
@@ -155,7 +156,46 @@ int main(void)
 
         while (1)
         {
+            if(BBCount > 10)
+            {
+                int i;
 
+                // Recalibrate to 0.
+                GtempX = GtempX + Filter[0];
+                GtempY = GtempY + Filter[1];
+                GtempZ = GtempZ + Filter[2];
+
+                //Reset filter results
+                for (i=0 ; i<3 ; i++)
+                {
+                    Filter[i] = 0;
+                }
+
+                //Reset noise filter buffers:
+                for (i=0 ; i<5 ; i++)
+                {
+                    XBuffer[i] = 0;
+                    YBuffer[i] = 0;
+                    ZBuffer[i] = 0;
+                }
+
+                //Reset FIFO Pointers.
+                XPointer = 0;
+                YPointer = 0;
+                ZPointer = 0;
+
+                //Reset Mpu Variables
+                MpuReadCount=0;
+                yaw=0;
+                pitch=0;
+                roll=0;
+                Angle_X=0;
+                Angle_Y=0;
+                gyroAngleX=0;
+                gyroAngleY=0;
+
+                I2CInit();
+            }
         }
 
 }
@@ -558,6 +598,15 @@ __interrupt void cpu_timer2_isr(void)
     I2caRegs.I2CDXR = 0xE1;  //Continuous Transfer
     for(i=0 ; i<700; i++);    //Wait
 
+    getTemps();
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+
+}
+
+void getTemps(void)
+{
+
+    Cels = (((tmpL * 256) + (tmpH & 0xF0)) / 16) * 0.0625;
+    Fahr = Cels * 1.8 + 32;
 
 }
